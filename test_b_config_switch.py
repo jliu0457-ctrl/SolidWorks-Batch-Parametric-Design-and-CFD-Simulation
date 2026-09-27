@@ -18,9 +18,9 @@ from pathlib import Path
 import pythoncom
 import win32com.client as win32
 
-ROOT = Path(r"C:\Users\liujunxiang\Desktop\流体仿真2")
-SRC = ROOT / "自动映射" / "working" / "assembly_repair_v5"
-DST = ROOT / "自动映射" / "working" / "seven_variable_trials" / "template_cfgtest_012"
+ROOT = Path(__file__).resolve().parent  # 由自身位置推出
+SRC = ROOT / "SolidWorks-Batch-Parametric-Design-and-CFD-Simulation" / "working" / "assembly_repair_v5"
+DST = ROOT / "SolidWorks-Batch-Parametric-Design-and-CFD-Simulation" / "working" / "seven_variable_trials" / "template_cfgtest_012"
 OUT = ROOT / "test_b_result.json"
 
 

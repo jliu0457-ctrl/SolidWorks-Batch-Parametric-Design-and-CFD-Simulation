@@ -12,20 +12,25 @@ from pathlib import Path
 import pythoncom
 import win32com.client as win32
 
-ROOT = Path(r"C:\Users\liujunxiang\Desktop\流体仿真2")
-SOLIDWORKS_EXE = Path(r"D:\Program Files\2026SW\SOLIDWORKS\SLDWORKS.exe")
-BINCFW = Path(r"D:\Program Files\2026SW\SOLIDWORKS Flow Simulation\binCFW")
-
+ROOT = Path(__file__).resolve().parent              # 项目根由自身位置推出，不写死
 sys.path.insert(0, str(ROOT))
-import flow_transfer as ft
+sys.path.insert(0, str(ROOT / "SolidWorks-Batch-Parametric-Design-and-CFD-Simulation" / "scripts"))
+
+import flow_transfer as ft      # noqa: E402
+import machine_paths as mpaths  # noqa: E402
+
+#: 安装位置由 machine_paths 探测（注册表）或读覆盖文件 —— 不写死，这样项目能整体搬机器。
+_SW = mpaths.resolve()
+SOLIDWORKS_EXE = _SW["solidworks_exe"]
+BINCFW = _SW["bincfw"]
 
 
 def main():
     pythoncom.CoInitialize()
-    if not SOLIDWORKS_EXE.is_file():
-        raise SystemExit("missing %s" % SOLIDWORKS_EXE)
-    if not BINCFW.is_dir():
-        raise SystemExit("missing %s" % BINCFW)
+    if not (SOLIDWORKS_EXE and SOLIDWORKS_EXE.is_file()):
+        raise SystemExit("找不到 SolidWorks。\n%s" % mpaths.describe())
+    if not (BINCFW and BINCFW.is_dir()):
+        raise SystemExit("找不到 binCFW。\n%s" % mpaths.describe())
 
     api = ft.connect()
 

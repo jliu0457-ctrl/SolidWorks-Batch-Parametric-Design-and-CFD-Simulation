@@ -26,6 +26,8 @@
 *.pdb
 *.obj
 *.tmp
+*.docx
+*_project_folders.html
 
 # ---- 缓存 ---------------------------------------------------
 __pycache__/
@@ -40,6 +42,31 @@ $rpr_data/
 自动映射/artifacts/
 自动映射/source_snapshot/
 
+# ---- 改名后的源码目录：仍然不提交运行资产与诊断数据 ----
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/working/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/outputs/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/_analysis/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/runs/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/artifacts/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/source_snapshot/
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/参数化与Flow自动化-过程交接.md
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/迁移到其他电脑-问题记录.md
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/design_nolock_test.json
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/config/topology_gate_failpt.json
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/config/candidate_trials.json
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/config/design_baseline.json
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/config/design_changed_*.json
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/config/design_random_*.json
+data generate/outputs/
+data generate/runs/
+data generate/logs/
+data generate/_qa_lhs*/
+data generate/_docx_qa_bounds/
+data generate/参数范围CAD验证报告_*.md
+data generate/开度扫掠方案.md
+data generate/拓扑门禁与范围策略.md
+*.json.bak-*
+
 # ---- 人工参照工程（含 CAD 与结果）---------------------------
 1/
 
@@ -47,7 +74,7 @@ $rpr_data/
 probe_fixed_result.json
 probe_names.txt
 
-# ---- 文档：只收 自动映射/ 下那三份；根目录的历史文档不收 -----
+# ---- 根目录的历史文档不公开 --------------------------------
 /SolidWorks自动化-交接文档.md
 /三偏心蝶阀-流体仿真方案.md
 /流体仿真优化与API接入-交接文档.md
@@ -60,3 +87,6 @@ probe_names.txt
 
 # ---- npm 依赖树（几千个文件，绝不进仓库）----
 node_modules/
+
+# ---- 已按要求从远端移除；保留在本地磁盘，但不进版本库 ----------
+SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/七变量CAD映射说明.md
