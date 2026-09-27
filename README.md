@@ -37,7 +37,7 @@ This is **not** a byte-for-byte copy of the reference study. Some Flow settings 
 
 ## 4. Run a batch and export results
 
-Supply the matching valve template, input table, Flow reference assets, and licensed software. Follow the [English quick-start](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.md) or the [detailed Chinese manual](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.cn.md) for setup. Before executing a batch, open **one** SolidWorks instance at its empty main window and close Excel workbooks that may lock the output files.
+Supply the matching assembly template, input table, Flow reference assets, and licensed software. Follow the [English quick-start](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.md) or the [detailed Chinese manual](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.cn.md) for setup. Before executing a batch, open **one** SolidWorks instance at its empty main window and close Excel workbooks that may lock the output files.
 
 ```powershell
 cd "SolidWorks-Batch-Parametric-Design-and-CFD-Simulation"
@@ -93,7 +93,7 @@ Flow 探针和 API 代码读取参考工程中可访问的设置，为参数化�
 
 ## 4. 批量运行并导出结果
 
-准备好匹配的蝶阀母版、输入表、Flow 参考资产和软件环境，并按项目的 [`Instruction.cn.md`](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.cn.md) 配置。运行前只打开**一个** SolidWorks 实例，停在空白主界面，并关闭可能占用结果表的 Excel。
+准备好匹配的装配体母版、输入表、Flow 参考资产和软件环境，并按项目的 [`Instruction.cn.md`](SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.cn.md) 配置。运行前只打开**一个** SolidWorks 实例，停在空白主界面，并关闭可能占用结果表的 Excel。
 
 ```powershell
 cd "SolidWorks-Batch-Parametric-Design-and-CFD-Simulation"
