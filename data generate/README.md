@@ -1,97 +1,39 @@
-# 数据生成工作区
+# Design-data generation
 
-本目录专门用于后续批量生成训练数据，不修改或搬动现有单例全链路脚本。
+This directory generates candidate design points for the triple-eccentric butterfly valve project. It does **not** contain the CAD master model or CFD results.
 
-目录约定：
+## Directory layout
 
-- `configs/`：批量设计点、变量范围和批次配置。
-- `runs/`：每个参数化与 Flow Simulation 实例的独立工作副本。
-- `outputs/`：汇总后的训练表和批次报告。
-- `logs/`：调度、SolidWorks、Flow 求解及失败诊断日志。
+- `configs/`: design ranges and sampling configuration.
+- `outputs/`: generated Excel workbooks (not committed).
+- `runs/` and `logs/`: runtime files (not committed).
+- [`generate_lhs.mjs`](generate_lhs.mjs): reproducible Latin hypercube sampling (LHS) generator.
 
-现阶段的已验证实现位于 `SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/`。后续批量调度器应调用该实现，并遵守：
+## Current sampling bounds
 
-1. 母版只读，每个设计点使用独立副本。
-2. 当前固定 45° 开度，一个七变量设计点在训练表中只能有一行。
-3. 失败实例保留诊断信息，但不得写入正式训练表。
-4. 不改变现有边界条件、目标、网格和结果口径。
-5. 只清理可明确识别的 SolidWorks 空残留进程，不结束正常或状态不明的实例。
+These bounds were tested against the project's CAD topology gate. They are **not** a guarantee that every combination inside the rectangular range is geometrically feasible.
 
-## 七变量采样上下界
+| Input | Meaning | Lower | Upper | Unit |
+|---|---|---:|---:|---|
+| `c_mm` | Axial eccentricity | 28.8 | 32.2 | mm |
+| `e_mm` | Radial eccentricity | 3.33 | 4.07 | mm |
+| `phi_deg` | Eccentric angle | 5 | 8.42 | degrees |
+| `alpha_deg` | Full cone angle | 20 | 35.78 | degrees |
+| `Dmax_mm` | Seal-cone base diameter | 184.1 | 191.40 | mm |
+| `bm_mm` | Sealing-sheet thickness | 7 | 8 | mm |
+| `ds_mm` | Shaft diameter | 41.47 | 45.0 | mm |
 
-| 变量名 | 几何含义 | 下界 | 上界 | 单位 | 取值依据 |
-|---|---|---:|---:|---|---|
-| `c_mm` | 轴向偏心距 | 28.8 | 32.2 | mm | 基准值 32 mm 的 -10%；上界由 2026-09-22 二分实测 |
-| `e_mm` | 径向偏心距 | 3.33 | 4.07 | mm | 基准值 3.7 mm 的 ±10%，两端实测都通过 |
-| `phi_deg` | 偏心角 | 5 | 8.42 | ° | 上界由二分实测（原 11 不可用）|
-| `alpha_deg` | 全锥角 | 20 | 35.78 | ° | 上界由二分实测（原 40 不可用）|
-| `Dmax_mm` | 密封锥底圆直径 | 184.1 | 191.40 | mm | 下界 184.1 由二分实测；上界同 |
-| `bm_mm` | 密封片厚度 | 7 | 8 | mm | 指定范围，两端实测都通过 |
-| `ds_mm` | 阀杆直径 | 41.47 | 45.0 | mm | 两端都由二分实测（原 37.152~49 不可用）|
+Several upper bounds are close to the reference design, and the feasible domain is coupled rather than rectangular. A sampled design may fail geometry or topology checks without indicating a generator bug. `alpha_deg` is the **full** cone angle; the CAD mapping writes `alpha_deg / 2` to relevant half-angle dimensions. The local [Chinese technical notes](README.md) contain more project-specific background; the detailed validation reports are not included in the source-only Git repository.
 
-⚠️ **上界几乎等于基准值**（`ds` 的上界就是基准值本身）：母版的特征没有余量，
-尺寸一往上推就退化。**所以这批采样只覆盖"基准值及以下"的设计空间**——
-这是 2026-09-23 确认并接受的取舍。
+## Generate a workbook
 
-⚠️ **这张表是"上界"，不是"能取的范围"。** 每一行都是固定其余变量为基准值测出来的；
-真实可行域是它的斜切子集（`phi↔alpha`、`Dmax↔alpha` 可以互换）。
-所以采样表里**会有一批点被拓扑门禁拦下**——那是正常的，别当成程序出错。
-完整的耦合关系和实测数据见本地报告 `参数范围CAD验证报告_2026-09-22.md`（不随源码提交）。
-
-**`Dmax_mm` 下界为什么是 184.1**：`179.9` 实测失败 —— Dmax 反解出的内部锥面构造直径
-降到约 `s = 159.14 mm` 时，`10压板.SLDPRT` 的 `切除-旋转2` 重建失败（错误码 71）。
-沿基准路径二分得到最近可用值 `183.99772`、最近失败值 `183.99214`（0.01 mm 分辨率）；
-184.1 是留了 0.1 mm 余量的生产值，不是二分结果本身。
-
-**拓扑门禁**（2026-09-22 起）：重建后每个零件的**面数 + 逐类型计数**必须和母版一致，
-不一致就判这个设计点失败。判据、验收和已知边界见本地文档 `拓扑门禁与范围策略.md`（不随源码提交）。
-
-**角度口径：**`alpha_deg` 是**全锥角**。参数化程序会把阀体、密封圈、压板和蝶板上的
-半锥角写成 `alpha_deg / 2`；所以物理半锥角 10°～17.89° 必须在采样文件里写成
-`alpha_deg = 20°～35.78°`，不能直接填 10～17.89。
-
-正式采样建议使用最大最小距离拉丁超立方，并固定随机种子。生成后还需执行几何范围、
-重建、干涉和内部流体域门禁，只有全部通过的样本才能进入正式训练表。
-
-对应 Word 版表格见本地文件 `七变量采样上下界.docx`（不随源码提交）。
-
-## 拉丁超立方样本生成
-
-生成程序为 `generate_lhs.mjs`。默认使用固定随机种子 `20260921`，生成 3600 组
-七变量随机拉丁超立方样本，并在导出前检查每个变量的 3600 个分层是否全部且仅使用一次。
-
-默认输出：`outputs/七变量拉丁超立方采样_3600组.xlsx`。
-
-Excel 包含：
-
-- `LHS样本`：第一列为 `样本序号`（1～3600），其余表头只写七个原始变量名，
-  不在变量名中添加序号；
-- `参数范围`：记录变量序号、变量名、物理含义、单位、上下界、范围依据、样本数和随机种子。
-
-工作簿统一使用白底黑字和 Arial 字体，仅表头加粗；不使用彩色表头、花底或隔行底色。
-
-重新生成时，在本目录运行：
+The script requires Node.js and `@oai/artifact-tool` in its runtime environment.
 
 ```powershell
-node generate_lhs.mjs
+cd "data generate"
+node generate_lhs.mjs --samples 3600 --seed 20260921 --output "outputs\designs.xlsx"
 ```
 
-也可以指定样本数、随机种子和输出路径：
+The same seed and sample count reproduce the same design points. The workbook contains a numbered sample sheet and a bounds sheet. Candidate designs must still pass CAD rebuild, topology, interference, and internal-fluid-domain checks before they become training data.
 
-```powershell
-node generate_lhs.mjs --samples 3600 --seed 20260921 --output outputs\七变量拉丁超立方采样_3600组.xlsx
-```
-
-同一个随机种子和样本数会生成完全相同的设计点。修改随机种子会生成另一套合法的
-拉丁超立方样本。
-
-## 批量仿真
-
-本目录生成的采样表只包含 `样本序号 + 七个设计变量`，**不增加开度列** ——
-开度固定 45°，不是设计变量。一行的七个变量就是一个样本，
-结果全部写进唯一一张 `SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/outputs/training_dataset.xlsx`（17 列）。
-
-> 开度扫掠（15°/45°/60°/75°）曾于 2026-09-23 试验过一轮并已回退到单开度，
-> 方案留档见本地 `开度扫掠方案.md`，回退记录见本地过程交接文档 §10.8；两者均不随源码提交。
-
-运行命令见 [Instruction.md](../SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.md) §10。
+The current batch runner expects an input sheet with a unique sample ID and the seven exact field names above. Consult the [English batch guide](../SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/Instruction.md) before running SolidWorks.

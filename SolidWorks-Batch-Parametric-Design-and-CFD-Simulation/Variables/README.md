@@ -1,44 +1,52 @@
-# Variables —— 放变量表的地方
+# Variables — where the input workbooks live
 
-**程序只读这里的表，不生成数据。** 数据由 [`../../data generate/`](../../data%20generate/) 生成，或别人直接提供。
-当前试跑表建议放约 50 组；3600 组正式候选集保存在 `data generate/`，需要全量运行时再用
-`--xlsx` 显式指定，避免误把全量任务直接排入 SolidWorks。
+**The runner only reads tables from this directory; it never writes data here.** Tables are produced by
+[`../../data generate/`](../../data%20generate/), or supplied directly by someone else.
 
-## 表格格式
+Roughly 50 rows is a good size for a trial run. The full 3600-candidate set lives in `data generate/`;
+point at it explicitly with `--xlsx` when you actually want to queue all of it, so a full-scale run never
+starts by accident.
 
-- **第 1 行是表头**
-- **第 1 列是 `样本序号`** —— 每个样本的唯一编号
-- 其余列是七个设计变量，**列名必须逐字相同**：
-  `c_mm`、`e_mm`、`phi_deg`、`alpha_deg`、`Dmax_mm`、`bm_mm`、`ds_mm`
+## Workbook format
 
-**输入表不要增加开度列。** 开度固定 45°，不是设计变量；表里就这 8 列。
+- **Row 1 is the header.**
+- **Column 1 is `样本序号`** — the unique ID of each sample.
+- The remaining columns are the seven design variables, and **the header names must match character for character**:
+  `c_mm`, `e_mm`, `phi_deg`, `alpha_deg`, `Dmax_mm`, `bm_mm`, `ds_mm`
 
-列**按表头名字匹配，顺序随便放**。示例：
+**Do not add an opening-angle column.** The opening is fixed at 45° and is not a design variable;
+these eight columns are the whole contract.
+
+Columns are **matched by header name, so the order is free.** Example:
 
 | 样本序号 | c_mm | e_mm | phi_deg | alpha_deg | Dmax_mm | bm_mm | ds_mm |
 |---:|---:|---:|---:|---:|---:|---:|---:|
 | 1 | 32.1949 | 3.6221 | 6.2944 | 36.0531 | 188.0258 | 7.3574 | 45.2942 |
 
-⚠️ **`alpha_deg` 是全锥角**：物理半锥角 10°~20° 要写成 `alpha_deg = 20~40`，不能直接填 10~20。
+⚠️ **`alpha_deg` is the full cone angle**: a physical half-angle of 10°–20° must be written as
+`alpha_deg = 20–40`, not 10–20.
 
-## 别的约定
+## Other conventions
 
-- 可以放**多份** `.xlsx`，会自动合并；**编号撞车会报错**（两份表出现同一个编号）
-- 可以**只放一部分**（比如先放 2 行试跑）
-- 整行空行会跳过；**有数据没编号、或单元格为空都会明确报错**，不会静默跳过
-- 编号会原样写进训练表的第一列
+- You may drop in **several** `.xlsx` files; they are merged automatically. **Duplicate IDs are an error**
+  (the same ID appearing in two tables).
+- You may supply **only part** of the set — two rows is fine for a smoke test.
+- Fully blank rows are skipped. **A row with data but no ID, or a blank cell, is a hard error** — it will
+  not be skipped silently.
+- IDs are written through to the first column of the training table unchanged.
 
-## 怎么跑
+## Running
 
 ```bash
-cd ..                                  # 到 SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/
-python scripts/Run-Batch.py            # 预检（只读）
-python scripts/Run-Batch.py --execute  # 真跑
+cd ..                                  # into SolidWorks-Batch-Parametric-Design-and-CFD-Simulation/
+python scripts/Run-Batch.py            # preview only (read-only)
+python scripts/Run-Batch.py --execute  # actually run
 ```
 
-结果全部写进唯一一张 `outputs/training_dataset.xlsx`（17 列 = 样本序号 + 七个设计变量
-+ 七个 Flow 目标 + ΔP + Cv）。
+Everything lands in the single `outputs/training_dataset.xlsx` (17 columns = sample ID + the seven design
+variables + the seven Flow goals + ΔP + Cv).
 
-完整流程（生成数据 → 放这里 → 跑）见 [../Instruction.md](../Instruction.md) §11。
+The full flow (generate data → drop it here → run) is in [../Instruction.md](../Instruction.md)
+under *Preview, validate one case, then batch*.
 
-> 这个目录里的 `*.xlsx` **不进 git** —— 表是数据，不是代码。
+> `*.xlsx` files in this directory **never enter git** — tables are data, not code.
